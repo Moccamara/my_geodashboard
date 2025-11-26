@@ -19,8 +19,7 @@ st.title(APP_TITLE)
 # -----------------------------
 # Folder containing GeoJSON/Shapefile
 # -----------------------------
-FOLDER_PATH = r"D:\Web_Mapping\geo_env\data"
-folder = Path(FOLDER_PATH)
+folder = Path("data")  # relative path
 
 # Find first .geojson or .shp file
 geo_file = next((f for f in folder.glob("*.geojson")), None)
@@ -50,8 +49,9 @@ gdf = gdf[gdf.is_valid & ~gdf.is_empty]
 # -----------------------------
 # Sidebar + LOGO
 # -----------------------------
+logo_path = Path("images/instat_logo.png")  # relative path
 with st.sidebar:
-    st.image(r"D:\Web_Mapping\geo_env\instat_logo.png", width=120)
+    st.image(logo_path, width=120)
     st.markdown("### Geographical level")
 
 # -----------------------------
@@ -161,7 +161,7 @@ with col_chart:
     # ---------------------------
     # Bar Chart (GeoJSON)
     # ---------------------------
-    if idse_selected == "No filter":
+    if idse_selected == "No filtre":
         st.info("Select SE.")
     else:
         st.subheader("📊")
@@ -256,7 +256,6 @@ with col_chart:
                         st.pyplot(fig)
 
                         st.markdown(f"""
-                       
                         - 👨 M: **{total_masculin}**
                         - 👩 F: **{total_feminin}**
                         - 👥 Pop: **{total_population}**
@@ -266,12 +265,11 @@ with col_chart:
                 st.error(f"Erreur lors du pie chart : {e}")
 
 # -----------------------------
-# QGIS Button - Save selection
+# QGIS Button - Save selection (QGIS cannot open on Streamlit Cloud)
 # -----------------------------
-QGIS_PROJECT = r"D:\Web_Mapping\geo_env\qgis_project\project.qgz"
-SE_FILE = r"D:\Web_Mapping\geo_env\qgis_project\se_selected\selected_se.json"
+SE_FILE = Path("qgis_project/se_selected/selected_se.json")
 
-if st.button("🟢 Ouvrir dans QGIS"):
+if st.button("🟢 Save selection JSON"):
     try:
         selected_info = {
             "region": region_selected,
@@ -280,13 +278,12 @@ if st.button("🟢 Ouvrir dans QGIS"):
             "idse_new": idse_selected
         }
 
-        os.makedirs(os.path.dirname(SE_FILE), exist_ok=True)
+        os.makedirs(SE_FILE.parent, exist_ok=True)
 
         with open(SE_FILE, "w", encoding="utf-8") as f:
             json.dump(selected_info, f, ensure_ascii=False, indent=4)
 
-        os.startfile(QGIS_PROJECT)
-        st.success("Projet QGIS ouvert et sélection envoyée ✔")
+        st.success("Selection saved ✔")
 
     except Exception as e:
         st.error(f"Erreur : {e}")
