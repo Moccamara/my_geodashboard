@@ -9,18 +9,15 @@ import json
 import pandas as pd
 from shapely.geometry import Point
 import matplotlib.pyplot as plt
-
 # -----------------------------
 # App title
 # -----------------------------
 APP_TITLE = '**RGPH5 Census Update**'
 st.title(APP_TITLE)
-
 # -----------------------------
 # Folder containing GeoJSON/Shapefile
 # -----------------------------
 folder = Path("data")  # relative path
-
 # Find first .geojson or .shp file
 geo_file = next((f for f in folder.glob("*.geojson")), None)
 if not geo_file:
@@ -28,11 +25,9 @@ if not geo_file:
 if not geo_file:
     st.error("Aucun fichier GeoJSON ou Shapefile trouvé dans le dossier.")
     st.stop()
-
 # Load GeoJSON
 gdf = gpd.read_file(geo_file)
 gdf.columns = gdf.columns.str.lower().str.strip()
-
 # -----------------------------
 # Rename columns
 # -----------------------------
@@ -45,7 +40,6 @@ rename_map = {
 gdf = gdf.rename(columns=rename_map)
 gdf = gdf.to_crs(epsg=4326)
 gdf = gdf[gdf.is_valid & ~gdf.is_empty]
-
 # -----------------------------
 # Sidebar + LOGO
 # -----------------------------
@@ -53,7 +47,6 @@ logo_path = Path("images/instat_logo.png")  # relative path
 with st.sidebar:
     st.image(logo_path, width=120)
     st.markdown("### Geographical level")
-
 # -----------------------------
 # Filters
 # -----------------------------
@@ -88,7 +81,6 @@ for col in ["pop_se", "pop_se_ct"]:
 minx, miny, maxx, maxy = gdf_idse.total_bounds
 center_lat = (miny + maxy) / 2
 center_lon = (minx + maxx) / 2
-
 # -----------------------------
 # Folium Map
 # -----------------------------
@@ -113,7 +105,6 @@ csv_file = st.sidebar.file_uploader(
     type=["csv"],
     key="csv_points_uploader"
 )
-
 points_gdf = None
 if csv_file:
     try:
@@ -122,7 +113,6 @@ if csv_file:
         lon_col = "LON"
 
         df_csv = df_csv.dropna(subset=[lat_col, lon_col])
-
         if not df_csv.empty:
             points_gdf = gpd.GeoDataFrame(
                 df_csv,
@@ -131,7 +121,6 @@ if csv_file:
             )
     except Exception as e:
         st.sidebar.error(f"Error loading CSV: {e}")
-
 # Add CSV points to the map
 if points_gdf is not None and not points_gdf.empty:
     for _, row in points_gdf.iterrows():
@@ -143,7 +132,6 @@ if points_gdf is not None and not points_gdf.empty:
                 fill=True,
                 fill_opacity=0.8
             ).add_to(m)
-
 # -----------------------------
 # Layout: Map left & Chart right
 # -----------------------------
@@ -177,12 +165,10 @@ with col_chart:
             var_name="Variable",
             value_name="Population"
         )
-
         df_long["Variable"] = df_long["Variable"].replace({
             "pop_se": "Pop SE",
             "pop_se_ct": "Pop Actu"
         })
-
         # Bar chart with legend visible
         chart = (
             alt.Chart(df_long)
@@ -213,14 +199,12 @@ with col_chart:
             )
             .properties(width=80, height=120)
         )
-
         st.altair_chart(chart, use_container_width=True)
 
         # ---------------------------
         # Pie Chart (CSV: Masculin / Feminin)
         # ---------------------------
         st.subheader("Sex(M.F)")
-
         if points_gdf is None:
             st.warning("Select CSV file.")
         else:
@@ -231,7 +215,6 @@ with col_chart:
                     predicate="within",
                     how="inner"
                 )
-
                 if points_inside.empty:
                     st.warning("NO SE selected.")
                 else:
@@ -241,10 +224,8 @@ with col_chart:
                         total_masculin = int(points_inside["Masculin"].sum())
                         total_feminin = int(points_inside["Feminin"].sum())
                         total_population = total_masculin + total_feminin
-
                         labels = ["M", "F"]
                         values = [total_masculin, total_feminin]
-
                         fig, ax = plt.subplots(figsize=(3.5, 3.5))
                         wedges, texts, autotexts = ax.pie(
                             values,
@@ -252,23 +233,18 @@ with col_chart:
                             autopct=lambda pct: f"{pct:.1f}%" if pct > 0 else "",
                             textprops={'color': 'white', 'fontsize': 14}
                         )
-                        
                         st.pyplot(fig)
-
                         st.markdown(f"""
                         - 👨 M: **{total_masculin}**
                         - 👩 F: **{total_feminin}**
                         - 👥 Pop: **{total_population}**
                         """)
-
             except Exception as e:
                 st.error(f"Erreur lors du pie chart : {e}")
-
 # -----------------------------
 # QGIS Button - Save selection (QGIS cannot open on Streamlit Cloud)
 # -----------------------------
 SE_FILE = Path("qgis_project/se_selected/selected_se.json")
-
 if st.button("🟢 Save selection JSON"):
     try:
         selected_info = {
@@ -277,17 +253,12 @@ if st.button("🟢 Save selection JSON"):
             "commune": commune_selected,
             "idse_new": idse_selected
         }
-
         os.makedirs(SE_FILE.parent, exist_ok=True)
-
         with open(SE_FILE, "w", encoding="utf-8") as f:
             json.dump(selected_info, f, ensure_ascii=False, indent=4)
-
         st.success("Selection saved ✔")
-
     except Exception as e:
         st.error(f"Erreur : {e}")
-
 # -----------------------------
 # Footer
 # -----------------------------
@@ -295,3 +266,4 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
