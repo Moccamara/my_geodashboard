@@ -101,10 +101,17 @@ folium.GeoJson(
 ).add_to(m)
 
 # -----------------------------
-# 📍 Add "My Position" Button (GPS)
+# 📍 Add "My Position" Button (GPS) — FIXED VERSION
 # -----------------------------
 gps_js = """
-function addGPS(map) {
+function addGPS() {
+
+    // Check if map exists
+    if (!window.map) {
+        console.log("Map not ready");
+        return;
+    }
+
     var customControl = L.Control.extend({
         options: { position: 'topleft' },
         onAdd: function (map) {
@@ -117,30 +124,34 @@ function addGPS(map) {
             btn.style.border = "2px solid #444";
             btn.style.borderRadius = "5px";
             btn.style.cursor = "pointer";
+
             btn.onclick = function(){
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(function(position){
                         var lat = position.coords.latitude;
                         var lon = position.coords.longitude;
 
-                        L.marker([lat, lon]).addTo(map)
+                        L.marker([lat, lon]).addTo(window.map)
                           .bindPopup("📱 You are here")
                           .openPopup();
 
-                        map.setView([lat, lon], 20);
+                        window.map.setView([lat, lon], 19);
                     });
                 } else {
-                    alert("Geolocation is not supported.");
+                    alert("Geolocation not supported");
                 }
-            }
+            };
             return btn;
         }
     });
-    map.addControl(new customControl());
+
+    window.map.addControl(new customControl());
 }
+
+setTimeout(addGPS, 500);
 """
 
-m.get_root().html.add_child(folium.Element(f"<script>{gps_js} addGPS({{map}});</script>"))
+m.get_root().html.add_child(folium.Element(f"<script>{gps_js}</script>"))
 
 # -----------------------------
 # CSV Upload
@@ -192,4 +203,5 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPH5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
