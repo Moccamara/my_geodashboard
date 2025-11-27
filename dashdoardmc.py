@@ -23,7 +23,7 @@ geo_file = next((f for f in folder.glob("*.geojson")), None)
 if not geo_file:
     geo_file = next((f for f in folder.glob("*.shp")), None)
 if not geo_file:
-    st.error("Aucun fichier GeoJSON ou Shapefile trouvé dans le dossier.")
+    st.error("No GeoJSON ou Shapefile file find.")
     st.stop()
 # Load GeoJSON
 gdf = gpd.read_file(geo_file)
@@ -74,7 +74,6 @@ if idse_selected != "No filtre":
 for col in ["pop_se", "pop_se_ct"]:
     if col not in gdf_idse.columns:
         gdf_idse[col] = 0
-
 # -----------------------------
 # Map bounds
 # -----------------------------
@@ -95,7 +94,6 @@ folium.GeoJson(
     tooltip=folium.GeoJsonTooltip(fields=["idse_new", "pop_se", "pop_se_ct"], localize=True, sticky=True),
     popup=folium.GeoJsonPopup(fields=["idse_new", "pop_se", "pop_se_ct"], localize=True)
 ).add_to(m)
-
 # -----------------------------
 # Upload CSV Points (LAT, LON, Masculin, Feminin)
 # -----------------------------
@@ -143,7 +141,6 @@ with col_map:
         else f"🗺️ IDSE {idse_selected}"
     )
     st_folium(m, width=530, height=350)
-
 # -----------------------------
 # Footer
 # -----------------------------
@@ -151,6 +148,7 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
 
 
