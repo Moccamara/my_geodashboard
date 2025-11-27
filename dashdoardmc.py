@@ -142,7 +142,7 @@ with col_map:
         if idse_selected == "No filtre"
         else f"🗺️ IDSE {idse_selected}"
     )
-    st_folium(m, width=530, height=350)
+    st_folium(m, width=560, height=350)
 
 # -----------------------------
 # Footer
@@ -151,6 +151,7 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
 
 
