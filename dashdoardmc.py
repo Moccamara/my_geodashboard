@@ -4,102 +4,75 @@ import folium
 from streamlit_folium import st_folium
 from pathlib import Path
 import os
-import altair as alt
-import json
 import pandas as pd
 from shapely.geometry import Point
-import matplotlib.pyplot as plt
+
+# ---------------------------------------------------------
+# 🔐 AUTHENTICATION (Password disappears after login)
+# ---------------------------------------------------------
+
+if "auth_ok" not in st.session_state:
+    st.session_state.auth_ok = False
+
+PASSWORD = st.secrets["auth"]["dashboard_password"]
+
+if not st.session_state.auth_ok:
+    with st.sidebar:
+        st.header("🔐 Secure Access Required")
+        pwd = st.text_input("Enter Password:", type="password")
+        login_btn = st.button("Login")
+        if login_btn:
+            if pwd == PASSWORD:
+                st.session_state.auth_ok = True
+                st.rerun()  # hides password box immediately
+            else:
+                st.error("❌ Incorrect Password")
+    st.stop()
 
 # ---------------------------------------------------------
 # FRONT-END PROTECTION (Disable print, screenshot, right-click, copy)
 # ---------------------------------------------------------
-protect_js = """
+st.markdown("""
 <style>
-/* Disable text selection */
-* {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-/* Disable right click */
-body {
-    -webkit-touch-callout: none;
-}
+* { -webkit-user-select: none; user-select: none; }
+body { -webkit-touch-callout: none; }
 </style>
-
 <script>
-// Disable CTRL+P, CTRL+S, CTRL+U, PrintScreen
-document.addEventListener('keydown', function(e) {
-
-    // Disable PrintScreen key
-    if (e.key === 'PrintScreen') {
-        e.preventDefault();
-        alert("Screenshots are disabled.");
-    }
-
-    // Disable printing, saving, view-source
-    if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u')) {
-        e.preventDefault();
-        alert("Printing and saving are disabled.");
-    }
-});
-
-// Disable right-click menu
 document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u')) e.preventDefault();
+});
+document.addEventListener('keyup', e => { if(e.key=='PrintScreen'){alert("Screenshots disabled");} });
 </script>
-"""
-
-st.markdown(protect_js, unsafe_allow_html=True)
-
-# -----------------------------
-# App title
-# -----------------------------
-APP_TITLE = '**RGPH5 Census Update**'
-st.title(APP_TITLE)
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# FULL DASHBOARD ACCESS LOCK (Only authorized users)
+# MAIN DASHBOARD CODE
 # ---------------------------------------------------------
-ACCESS_PASSWORD = "instat2025"   # <<< Change your password here
 
-access_input = st.sidebar.text_input("Enter Dashboard Access Password:", type="password")
-
-if access_input != ACCESS_PASSWORD:
-    st.warning("🔐 Access Locked. Enter the correct password to open the dashboard.")
-    st.stop()
+st.title("**RGPH5 Census Update**")
 
 # -----------------------------
 # Folder containing GeoJSON/Shapefile
 # -----------------------------
-folder = Path("data")  # relative path
-
+folder = Path("data")
 geo_file = next((f for f in folder.glob("*.geojson")), None)
 if not geo_file:
     geo_file = next((f for f in folder.glob("*.shp")), None)
-
 if not geo_file:
-    st.error("No GeoJSON ou Shapefile file find.")
+    st.error("No GeoJSON or Shapefile found in /data folder.")
     st.stop()
 
 gdf = gpd.read_file(geo_file)
 gdf.columns = gdf.columns.str.lower().str.strip()
 
-rename_map = {
-    "lregion": "region",
-    "lcercle": "cercle",
-    "lcommune": "commune",
-    "idse_new": "idse_new"
-}
+rename_map = {"lregion": "region", "lcercle": "cercle", "lcommune": "commune", "idse_new": "idse_new"}
 gdf = gdf.rename(columns=rename_map)
 gdf = gdf.to_crs(epsg=4326)
 gdf = gdf[gdf.is_valid & ~gdf.is_empty]
 
 # -----------------------------
-# Sidebar + LOGO
+# Sidebar + Logo
 # -----------------------------
 logo_path = Path("images/instat_logo.png")
 with st.sidebar:
@@ -122,7 +95,7 @@ commune_selected = st.sidebar.selectbox("Commune", communes)
 gdf_commune = gdf_cercle[gdf_cercle["commune"] == commune_selected]
 
 idse_list = ["No filtre"] + sorted(gdf_commune["idse_new"].dropna().unique().tolist())
-idse_selected = st.sidebar.selectbox("IDSE_NEW (optionnal)", idse_list)
+idse_selected = st.sidebar.selectbox("IDSE_NEW (optional)", idse_list)
 
 gdf_idse = gdf_commune.copy()
 if idse_selected != "No filtre":
@@ -133,15 +106,12 @@ for col in ["pop_se", "pop_se_ct"]:
         gdf_idse[col] = 0
 
 # -----------------------------
-# Map bounds
+# Map
 # -----------------------------
 minx, miny, maxx, maxy = gdf_idse.total_bounds
 center_lat = (miny + maxy) / 2
 center_lon = (minx + maxx) / 2
 
-# -----------------------------
-# Folium Map
-# -----------------------------
 m = folium.Map(location=[center_lat, center_lon], zoom_start=19, tiles="OpenStreetMap")
 m.fit_bounds([[miny, minx], [maxy, maxx]])
 
@@ -149,43 +119,33 @@ folium.GeoJson(
     gdf_idse,
     name="IDSE Layer",
     style_function=lambda x: {"fillOpacity": 0, "color": "blue", "weight": 2},
-    tooltip=folium.GeoJsonTooltip(
-        fields=["idse_new", "pop_se", "pop_se_ct"], localize=True, sticky=True
-    ),
+    tooltip=folium.GeoJsonTooltip(fields=["idse_new", "pop_se", "pop_se_ct"], localize=True),
     popup=folium.GeoJsonPopup(fields=["idse_new", "pop_se", "pop_se_ct"], localize=True)
 ).add_to(m)
 
 # -----------------------------
-# SECURED CSV UPLOAD (Only admin)
+# CSV UPLOAD (disappears after upload)
 # -----------------------------
-st.sidebar.markdown("### Import CSV Points")
+if "csv_uploaded" not in st.session_state:
+    st.session_state.csv_uploaded = False
 
-ADMIN_PASSWORD = "instat2025"   # <<< Change your admin upload password here
-admin_input = st.sidebar.text_input("Enter Admin Password:", type="password")
-
-csv_file = None
 points_gdf = None
-
-if admin_input == ADMIN_PASSWORD:
+if not st.session_state.csv_uploaded:
+    st.sidebar.markdown("### Import CSV Points")
     csv_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
-else:
-    st.sidebar.info("CSV upload disabled (no permission).")
-
-if csv_file:
-    try:
+    if csv_file:
         df_csv = pd.read_csv(csv_file)
         df_csv = df_csv.dropna(subset=["LAT", "LON"])
-        if not df_csv.empty:
-            points_gdf = gpd.GeoDataFrame(
-                df_csv,
-                geometry=gpd.points_from_xy(df_csv["LON"], df_csv["LAT"]),
-                crs="EPSG:4326"
-            )
-    except Exception as e:
-        st.sidebar.error(f"Error loading CSV: {e}")
+        points_gdf = gpd.GeoDataFrame(
+            df_csv,
+            geometry=gpd.points_from_xy(df_csv["LON"], df_csv["LAT"]),
+            crs="EPSG:4326"
+        )
+        st.session_state.csv_uploaded = True
+else:
+    st.sidebar.info("CSV file uploaded. Upload input hidden.")
 
-# Add points
-if points_gdf is not None and not points_gdf.empty:
+if points_gdf is not None:
     for _, row in points_gdf.iterrows():
         folium.CircleMarker(
             location=[row.geometry.y, row.geometry.x],
@@ -199,7 +159,6 @@ if points_gdf is not None and not points_gdf.empty:
 # Layout
 # -----------------------------
 col_map, col_chart = st.columns([4, 1])
-
 with col_map:
     st.subheader(
         f"🗺️ Commune : {commune_selected}"
