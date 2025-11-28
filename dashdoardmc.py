@@ -7,9 +7,8 @@ import pandas as pd
 from shapely.geometry import Point
 
 # ---------------------------------------------------------
-# 🔐 AUTHENTICATION (Password disappears after login)
+# 🔐 PASSWORD AUTHENTICATION (disappears after login)
 # ---------------------------------------------------------
-
 if "auth_ok" not in st.session_state:
     st.session_state.auth_ok = False
 
@@ -27,7 +26,7 @@ if not st.session_state.auth_ok:
         if login_btn:
             if pwd == PASSWORD:
                 st.session_state.auth_ok = True
-                st.rerun()  # hides password box immediately
+                st.rerun()  # hide password box after login
             else:
                 st.error("❌ Incorrect Password")
     st.stop()
@@ -41,15 +40,10 @@ st.markdown("""
 body { -webkit-touch-callout: none; }
 </style>
 <script>
-// Disable right-click menu
 document.addEventListener('contextmenu', event => event.preventDefault());
-
-// Disable CTRL+P, CTRL+S, CTRL+U
 document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u')) e.preventDefault();
 });
-
-// Disable PrintScreen key
 document.addEventListener('keyup', e => { if(e.key=='PrintScreen'){alert("Screenshots disabled");} });
 </script>
 """, unsafe_allow_html=True)
@@ -57,7 +51,6 @@ document.addEventListener('keyup', e => { if(e.key=='PrintScreen'){alert("Screen
 # ---------------------------------------------------------
 # MAIN DASHBOARD
 # ---------------------------------------------------------
-
 st.title("**RGPH5 Census Update**")
 
 # -----------------------------
@@ -132,26 +125,20 @@ folium.GeoJson(
 ).add_to(m)
 
 # -----------------------------
-# CSV UPLOAD (disappears after upload)
+# CSV UPLOAD (visible always)
 # -----------------------------
-if "csv_uploaded" not in st.session_state:
-    st.session_state.csv_uploaded = False
+st.sidebar.markdown("### Import CSV Points")
+csv_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
 points_gdf = None
-if not st.session_state.csv_uploaded:
-    st.sidebar.markdown("### Import CSV Points")
-    csv_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
-    if csv_file:
-        df_csv = pd.read_csv(csv_file)
-        df_csv = df_csv.dropna(subset=["LAT", "LON"])
-        points_gdf = gpd.GeoDataFrame(
-            df_csv,
-            geometry=gpd.points_from_xy(df_csv["LON"], df_csv["LAT"]),
-            crs="EPSG:4326"
-        )
-        st.session_state.csv_uploaded = True
-#else:
-    #st.sidebar.info("CSV uploaded. Input hidden.")
+if csv_file:
+    df_csv = pd.read_csv(csv_file)
+    df_csv = df_csv.dropna(subset=["LAT", "LON"])
+    points_gdf = gpd.GeoDataFrame(
+        df_csv,
+        geometry=gpd.points_from_xy(df_csv["LON"], df_csv["LAT"]),
+        crs="EPSG:4326"
+    )
 
 if points_gdf is not None:
     for _, row in points_gdf.iterrows():
@@ -182,4 +169,3 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
-
