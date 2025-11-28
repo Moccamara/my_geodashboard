@@ -127,7 +127,7 @@ folium.GeoJson(
 # -----------------------------
 # CSV from server path
 # -----------------------------
-csv_folder = Path("data/csv")  # folder where CSVs are stored
+csv_folder = Path("data")  # folder where CSVs are stored
 csv_file_name = "Denombrement-B_DENOMBREMENT.csv"   # CSV file to load
 csv_path = csv_folder / csv_file_name
 
@@ -172,4 +172,5 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
