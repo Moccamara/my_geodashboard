@@ -3,7 +3,6 @@ import geopandas as gpd
 import folium
 from streamlit_folium import st_folium
 from pathlib import Path
-import os
 import pandas as pd
 from shapely.geometry import Point
 
@@ -14,7 +13,11 @@ from shapely.geometry import Point
 if "auth_ok" not in st.session_state:
     st.session_state.auth_ok = False
 
-PASSWORD = st.secrets["auth"]["dashboard_password"]
+# Try to get password from secrets, fallback to default
+try:
+    PASSWORD = st.secrets["auth"]["dashboard_password"]
+except Exception:
+    PASSWORD = "instat2025"
 
 if not st.session_state.auth_ok:
     with st.sidebar:
@@ -30,7 +33,7 @@ if not st.session_state.auth_ok:
     st.stop()
 
 # ---------------------------------------------------------
-# FRONT-END PROTECTION (Disable print, screenshot, right-click, copy)
+# FRONT-END PROTECTION
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -38,16 +41,21 @@ st.markdown("""
 body { -webkit-touch-callout: none; }
 </style>
 <script>
+// Disable right-click menu
 document.addEventListener('contextmenu', event => event.preventDefault());
+
+// Disable CTRL+P, CTRL+S, CTRL+U
 document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u')) e.preventDefault();
 });
+
+// Disable PrintScreen key
 document.addEventListener('keyup', e => { if(e.key=='PrintScreen'){alert("Screenshots disabled");} });
 </script>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# MAIN DASHBOARD CODE
+# MAIN DASHBOARD
 # ---------------------------------------------------------
 
 st.title("**RGPH5 Census Update**")
@@ -143,7 +151,7 @@ if not st.session_state.csv_uploaded:
         )
         st.session_state.csv_uploaded = True
 else:
-    st.sidebar.info("CSV file uploaded. Upload input hidden.")
+    st.sidebar.info("CSV uploaded. Input hidden.")
 
 if points_gdf is not None:
     for _, row in points_gdf.iterrows():
