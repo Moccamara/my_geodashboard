@@ -39,14 +39,37 @@ st.markdown("""
 * { -webkit-user-select: none; user-select: none; }
 body { -webkit-touch-callout: none; }
 </style>
+
 <script>
+// Block right-click + shortcuts
 document.addEventListener('contextmenu', event => event.preventDefault());
 document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && (e.key === 'p' || e.key === 's' || e.key === 'u')) e.preventDefault();
 });
 document.addEventListener('keyup', e => { if(e.key=='PrintScreen'){alert("Screenshots disabled");} });
+
+// ======= RECEIVE GPS FROM ANDROID APP =======
+window.addEventListener("message", (event) => {
+    if (event.data.type === "gps_position") {
+        const lat = event.data.lat;
+        const lon = event.data.lon;
+        window.parent.postMessage(
+            {type: "streamlit:run", data: {lat: lat, lon: lon}},
+            "*"
+        );
+    }
+});
 </script>
 """, unsafe_allow_html=True)
+
+# ---------------------------------------------------------
+# RECEIVE USER POSITION FROM ANDROID WEBVIEW
+# ---------------------------------------------------------
+gps_data = st.experimental_get_query_params()
+
+if "lat" in gps_data and "lon" in gps_data:
+    st.session_state.user_lat = float(gps_data["lat"][0])
+    st.session_state.user_lon = float(gps_data["lon"][0])
 
 # ---------------------------------------------------------
 # MAIN DASHBOARD
@@ -125,10 +148,20 @@ folium.GeoJson(
 ).add_to(m)
 
 # -----------------------------
+# Add USER GPS Location Marker
+# -----------------------------
+if "user_lat" in st.session_state:
+    folium.Marker(
+        [st.session_state.user_lat, st.session_state.user_lon],
+        tooltip="📍 Votre position GPS",
+        icon=folium.Icon(color="red", icon="glyphicon glyphicon-user")
+    ).add_to(m)
+
+# -----------------------------
 # CSV from server path
 # -----------------------------
-csv_folder = Path("data")  # folder where CSVs are stored
-csv_file_name = "Denombrement-B_DENOMBREMENT.csv"   # CSV file to load
+csv_folder = Path("data")
+csv_file_name = "Denombrement-B_DENOMBREMENT.csv"
 csv_path = csv_folder / csv_file_name
 
 points_gdf = None
@@ -140,8 +173,6 @@ if csv_path.exists():
         geometry=gpd.points_from_xy(df_csv["LON"], df_csv["LAT"]),
         crs="EPSG:4326"
     )
-else:
-    st.sidebar.warning(f"CSV file not found at {csv_path}")
 
 if points_gdf is not None:
     for _, row in points_gdf.iterrows():
@@ -172,5 +203,3 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
-
-
