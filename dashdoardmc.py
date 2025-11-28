@@ -150,8 +150,8 @@ if not st.session_state.csv_uploaded:
             crs="EPSG:4326"
         )
         st.session_state.csv_uploaded = True
-else:
-    st.sidebar.info("CSV uploaded. Input hidden.")
+#else:
+    #st.sidebar.info("CSV uploaded. Input hidden.")
 
 if points_gdf is not None:
     for _, row in points_gdf.iterrows():
@@ -182,3 +182,4 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
