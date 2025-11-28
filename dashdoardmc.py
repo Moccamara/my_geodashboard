@@ -7,7 +7,7 @@ import pandas as pd
 from shapely.geometry import Point
 
 # ---------------------------------------------------------
-# 🔐 PASSWORD AUTHENTICATION (disappears after login)
+# 🔐 PASSWORD AUTHENTICATION
 # ---------------------------------------------------------
 if "auth_ok" not in st.session_state:
     st.session_state.auth_ok = False
@@ -125,20 +125,23 @@ folium.GeoJson(
 ).add_to(m)
 
 # -----------------------------
-# CSV UPLOAD (visible always)
+# CSV from server path
 # -----------------------------
-st.sidebar.markdown("### Import CSV Points")
-csv_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
+csv_folder = Path("data/csv")  # folder where CSVs are stored
+csv_file_name = "points.csv"   # CSV file to load
+csv_path = csv_folder / csv_file_name
 
 points_gdf = None
-if csv_file:
-    df_csv = pd.read_csv(csv_file)
+if csv_path.exists():
+    df_csv = pd.read_csv(csv_path)
     df_csv = df_csv.dropna(subset=["LAT", "LON"])
     points_gdf = gpd.GeoDataFrame(
         df_csv,
         geometry=gpd.points_from_xy(df_csv["LON"], df_csv["LAT"]),
         crs="EPSG:4326"
     )
+else:
+    st.sidebar.warning(f"CSV file not found at {csv_path}")
 
 if points_gdf is not None:
     for _, row in points_gdf.iterrows():
