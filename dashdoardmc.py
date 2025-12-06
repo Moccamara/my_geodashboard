@@ -86,7 +86,7 @@ gdf = gdf[gdf.is_valid & ~gdf.is_empty]
 # -----------------------------
 # Sidebar + Logo
 # -----------------------------
-logo_path = Path("instat_logo.png")
+logo_path = Path("images/logo_wgv.png")
 with st.sidebar:
     st.image(logo_path, width=100)
     st.markdown("### Geographical level")
@@ -176,6 +176,7 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
 
 
