@@ -14,10 +14,10 @@ if "auth_ok" not in st.session_state:
 try:
     PASSWORD = st.secrets["auth"]["dashboard_password"]
 except Exception:
-    PASSWORD = "instat2025"
+    PASSWORD = "moc2025"
 if not st.session_state.auth_ok:
     with st.sidebar:
-        st.header("🔐 Secure Access Required")
+        st.header("🔐 ID")
         pwd = st.text_input("Enter Password:", type="password")
         login_btn = st.button("Login")
         if login_btn:
@@ -66,7 +66,7 @@ if "lat" in gps_data and "lon" in gps_data:
 # ---------------------------------------------------------
 # MAIN DASHBOARD
 # ---------------------------------------------------------
-st.title("**RGPH5 Census Update**")
+st.title("**Geo Data Collection**")
 # -----------------------------
 # Folder containing GeoJSON/Shapefile
 # -----------------------------
@@ -89,7 +89,7 @@ gdf = gdf[gdf.is_valid & ~gdf.is_empty]
 logo_path = Path("images/logo_wgv.png")
 with st.sidebar:
     st.image(logo_path, width=150)
-    st.markdown("### Geographical level")
+    st.markdown("### Geographical filter")
 # -----------------------------
 # Filters
 # -----------------------------
@@ -176,6 +176,7 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
 
 
