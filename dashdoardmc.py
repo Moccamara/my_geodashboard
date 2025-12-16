@@ -173,9 +173,10 @@ with col_map:
 # Footer
 # -----------------------------
 st.markdown("""
-#**Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
-**Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
+**Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
+Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
 
 
