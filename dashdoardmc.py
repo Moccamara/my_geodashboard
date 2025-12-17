@@ -66,7 +66,7 @@ if "lat" in gps_data and "lon" in gps_data:
 # ---------------------------------------------------------
 # MAIN DASHBOARD
 # ---------------------------------------------------------
-st.title("**GIS Data Monitoring by CAMARA**")
+st.title("**GIS Data Monitoring**")
 # -----------------------------
 # Folder containing GeoJSON/Shapefile
 # -----------------------------
@@ -176,6 +176,7 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
 
 
