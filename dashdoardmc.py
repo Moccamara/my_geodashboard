@@ -154,7 +154,7 @@ if points_gdf is not None:
         folium.CircleMarker(
             location=[row.geometry.y, row.geometry.x],
             radius=2,
-            color="red",
+            color="green",
             fill=True,
             fill_opacity=0.8
         ).add_to(m)
@@ -176,6 +176,7 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
 
 
