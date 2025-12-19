@@ -14,7 +14,7 @@ if "auth_ok" not in st.session_state:
 try:
     PASSWORD = st.secrets["auth"]["dashboard_password"]
 except Exception:
-    PASSWORD = "moc2025"
+    PASSWORD = "mocc2025"
 if not st.session_state.auth_ok:
     with st.sidebar:
         st.header("🔐 ID")
@@ -176,6 +176,7 @@ st.markdown("""
 **Projet : Actualisation de la cartographie du RGPG5 (AC-RGPH5) – Mali**  
 Développé avec Streamlit sous Python par **CAMARA, PhD** • © 2025
 """)
+
 
 
 
